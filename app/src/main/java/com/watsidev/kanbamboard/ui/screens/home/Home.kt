@@ -1,10 +1,10 @@
-package com.watsidev.kanbamboard.ui.screens.Home
+package com.watsidev.kanbamboard.ui.screens.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,10 +13,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -84,18 +85,22 @@ fun HeaderTab() {
             )
             IconButton(
                 onClick = { /* Handle settings action */ },
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
                 modifier = Modifier
             ) {
                 Icon(
-                    Icons.Outlined.Upload,
+                    Icons.Outlined.FileUpload,
                     contentDescription = "Upload Icon",
                 )
             }
             IconButton(
                 onClick = { /* Handle settings action */ },
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
                 modifier = Modifier
-                    .height(56.dp)
-                    .aspectRatio(1f)
             ) {
                 Icon(
                     Icons.Outlined.Add,
@@ -103,6 +108,7 @@ fun HeaderTab() {
                 )
             }
         }
+        Spacer(Modifier.height(8.dp))
         TabRow(selectedTabIndex = selectedTab.value) {
             tabs.forEachIndexed { index, tab ->
                 Tab(

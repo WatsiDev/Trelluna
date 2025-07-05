@@ -16,19 +16,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.watsidev.kanbamboard.R
 import com.watsidev.kanbamboard.ui.navigation.Home
 import com.watsidev.kanbamboard.ui.navigation.Login
-import com.watsidev.kanbamboard.ui.screens.Home.HomeScreen
-import com.watsidev.kanbamboard.ui.screens.Login.LoginScreen
+import com.watsidev.kanbamboard.ui.navigation.SignUp
+import com.watsidev.kanbamboard.ui.screens.home.HomeScreen
+import com.watsidev.kanbamboard.ui.screens.login.LoginScreen
+import com.watsidev.kanbamboard.ui.screens.signUp.SignUpScreen
 
 @Composable
 fun App() {
@@ -40,6 +41,14 @@ fun App() {
         composable<Login> {
             LoginScreen(
                 onClick = { navController.navigate(Home) },
+                navigateToSignUp = { navController.navigate(SignUp) },
+                modifier = Modifier
+            )
+        }
+        composable<SignUp>{
+            SignUpScreen(
+                onClick = { navController.navigate(Home) },
+                navigateToLogin = { navController.popBackStack<Login>(inclusive = false) },
                 modifier = Modifier
             )
         }
@@ -75,6 +84,7 @@ fun KanbanTopBar() {
             Image(
                 painterResource(R.drawable.trellunahorizontal),
                 contentDescription = "Logo App",
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
                     .size(164.dp)
             )
