@@ -1,4 +1,4 @@
-package com.watsidev.kanbamboard.ui
+package com.watsidev.kanbanboard.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,13 +23,13 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.watsidev.kanbamboard.R
-import com.watsidev.kanbamboard.ui.navigation.Home
-import com.watsidev.kanbamboard.ui.navigation.Login
-import com.watsidev.kanbamboard.ui.navigation.SignUp
-import com.watsidev.kanbamboard.ui.screens.home.HomeScreen
-import com.watsidev.kanbamboard.ui.screens.login.LoginScreen
-import com.watsidev.kanbamboard.ui.screens.signUp.SignUpScreen
+import com.watsidev.kanbanboard.R
+import com.watsidev.kanbanboard.ui.navigation.Home
+import com.watsidev.kanbanboard.ui.navigation.Login
+import com.watsidev.kanbanboard.ui.navigation.SignUp
+import com.watsidev.kanbanboard.ui.screens.home.HomeScreen
+import com.watsidev.kanbanboard.ui.screens.login.LoginScreen
+import com.watsidev.kanbanboard.ui.screens.signUp.SignUpScreen
 
 @Composable
 fun App() {

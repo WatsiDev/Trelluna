@@ -1,4 +1,4 @@
-package com.watsidev.kanbamboard.ui.screens.home
+package com.watsidev.kanbanboard.ui.screens.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -30,9 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.watsidev.kanbamboard.ui.common.ButtonKanban
-import com.watsidev.kanbamboard.ui.common.TaskCard
-import com.watsidev.kanbamboard.ui.common.TaskTitle
+import com.watsidev.kanbanboard.ui.common.ButtonKanban
+import com.watsidev.kanbanboard.ui.common.TaskCard
+import com.watsidev.kanbanboard.ui.common.TaskTitle
 
 @Composable
 fun HomeScreen(

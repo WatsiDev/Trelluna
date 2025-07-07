@@ -1,4 +1,4 @@
-package com.watsidev.kanbamboard.ui.theme
+package com.watsidev.kanbanboard.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

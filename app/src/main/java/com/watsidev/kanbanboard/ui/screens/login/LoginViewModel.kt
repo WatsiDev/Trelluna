@@ -1,4 +1,4 @@
-package com.watsidev.kanbamboard.ui.screens.login
+package com.watsidev.kanbanboard.ui.screens.login
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

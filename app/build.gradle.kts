@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.watsidev.kanbamboard"
+    namespace = "com.watsidev.kanbanboard"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.watsidev.kanbamboard"
+        applicationId = "com.watsidev.kanbanboard"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

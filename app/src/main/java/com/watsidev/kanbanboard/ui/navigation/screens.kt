@@ -1,4 +1,4 @@
-package com.watsidev.kanbamboard.ui.navigation
+package com.watsidev.kanbanboard.ui.navigation
 
 import kotlinx.serialization.Serializable
 

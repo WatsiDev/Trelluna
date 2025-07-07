@@ -1,4 +1,4 @@
-package com.watsidev.kanbamboard.ui.screens.signUp
+package com.watsidev.kanbanboard.ui.screens.signUp
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -28,9 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.watsidev.kanbamboard.R
-import com.watsidev.kanbamboard.ui.common.ButtonKanban
-import com.watsidev.kanbamboard.ui.common.InputKanban
+import com.watsidev.kanbanboard.R
+import com.watsidev.kanbanboard.ui.common.ButtonKanban
+import com.watsidev.kanbanboard.ui.common.InputKanban
 
 
 @Composable

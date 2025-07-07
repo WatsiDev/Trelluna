@@ -1,4 +1,4 @@
-package com.watsidev.kanbamboard.ui.screens.home
+package com.watsidev.kanbanboard.ui.screens.home
 
 data class TabData(val title: String)
 

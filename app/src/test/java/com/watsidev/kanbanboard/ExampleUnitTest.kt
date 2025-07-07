@@ -1,4 +1,4 @@
-package com.watsidev.kanbamboard
+package com.watsidev.kanbanboard
 
 import org.junit.Test
 

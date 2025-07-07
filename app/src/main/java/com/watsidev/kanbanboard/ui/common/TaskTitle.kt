@@ -1,4 +1,4 @@
-package com.watsidev.kanbamboard.ui.common
+package com.watsidev.kanbanboard.ui.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

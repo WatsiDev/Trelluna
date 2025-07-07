@@ -1,4 +1,4 @@
-package com.watsidev.kanbamboard.ui.screens.login
+package com.watsidev.kanbanboard.ui.screens.login
 
 data class LoginUiState(
     val email: String = "",

@@ -1,4 +1,4 @@
-package com.watsidev.kanbamboard.ui.screens.signUp
+package com.watsidev.kanbanboard.ui.screens.signUp
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
