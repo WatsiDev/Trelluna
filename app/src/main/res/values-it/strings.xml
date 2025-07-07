@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Trelluna</string>
+    <string name="sign_in">Accedi</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="dont_have_account">Non hai un account?</string>
+    <string name="trelluna_logo">Logo Trelluna</string>
+    <string name="sign_up">Registrati</string>
+    <string name="username">Nome utente</string>
+    <string name="confirm_password">Conferma password</string>
+    <string name="already_have_account">Hai già un account?</string>
+    <string name="menu_icon">Icona del menu</string>
+</resources>

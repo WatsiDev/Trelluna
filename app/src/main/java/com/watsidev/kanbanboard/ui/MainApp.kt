@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -83,7 +84,7 @@ fun KanbanTopBar() {
         title = {
             Image(
                 painterResource(R.drawable.trellunahorizontal),
-                contentDescription = "Logo App",
+                contentDescription = stringResource(R.string.trelluna_logo),
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
                     .size(164.dp)
@@ -99,7 +100,7 @@ fun KanbanTopBar() {
             ) {
                 Icon(
                     Icons.Outlined.Menu,
-                    contentDescription = "Menu Icon",
+                    contentDescription = stringResource(R.string.menu_icon),
                 )
             }
         }

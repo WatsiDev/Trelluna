@@ -56,7 +56,7 @@ fun HeaderTab() {
             .background(MaterialTheme.colorScheme.surface)
     ) {
         Text(
-            "Kanban Board",
+            "Project Name",
             fontWeight = FontWeight.Bold,
             fontSize = 24.sp,
             modifier = Modifier
@@ -92,7 +92,7 @@ fun HeaderTab() {
             ) {
                 Icon(
                     Icons.Outlined.FileUpload,
-                    contentDescription = "Upload Icon",
+                    contentDescription = "Export Icon",
                 )
             }
             IconButton(
@@ -104,7 +104,7 @@ fun HeaderTab() {
             ) {
                 Icon(
                     Icons.Outlined.Add,
-                    contentDescription = "Upload Icon",
+                    contentDescription = "Add Task Icon",
                 )
             }
         }

@@ -55,7 +55,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.material.icons.extended.android)
     implementation(libs.lifecycle.viewmodel.compose.android)
-
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

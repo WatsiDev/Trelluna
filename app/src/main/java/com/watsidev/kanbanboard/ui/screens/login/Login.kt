@@ -18,11 +18,13 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,14 +51,13 @@ fun LoginScreen(
     ) {
         Image(
             painterResource(R.drawable.trellunatext),
-            contentDescription = "Trelluna Logo",
+            contentDescription = stringResource(R.string.trelluna_logo),
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
             modifier = Modifier
                 .size(185.dp)
-
         )
         Text(
-            "Sign In",
+            stringResource(R.string.sign_in),
             fontSize = 32.sp,
             fontWeight = FontWeight.Light,
             color = MaterialTheme.colorScheme.onBackground,
@@ -64,7 +65,7 @@ fun LoginScreen(
         InputKanban(
             text = uiState.value.email,
             onTextChange = { viewModel.onEmailChange(it) },
-            label = "Email",
+            label = stringResource(R.string.email),
             leadingIcon = Icons.Outlined.Email,
             isPassword = false,
             modifier = Modifier
@@ -73,23 +74,35 @@ fun LoginScreen(
         InputKanban(
             text = uiState.value.password,
             onTextChange = { viewModel.onPasswordChange(it) },
-            label = "Password",
+            label = stringResource(R.string.password),
             leadingIcon = Icons.Outlined.Lock,
             isPassword = true,
             modifier = Modifier
                 .fillMaxWidth()
         )
         ButtonKanban(
-            text = "Sign In",
+            text = stringResource(R.string.sign_in),
             icon = Icons.AutoMirrored.Filled.Login,
             onClick = {
-                viewModel.clearUiState()
-                onClick()
+                viewModel.loginUser()
                       },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
         )
+        LaunchedEffect(uiState.value.loginSuccess) {
+            if (uiState.value.loginSuccess) {
+                onClick()
+                viewModel.clearUiState() // Clear the UI state after successful login
+            }
+        }
+        uiState.value.errorMessage?.let { errorMessage ->
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(8.dp)
+            )
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -97,7 +110,7 @@ fun LoginScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Don't have an account?",
+                stringResource(R.string.dont_have_account),
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onBackground
             )

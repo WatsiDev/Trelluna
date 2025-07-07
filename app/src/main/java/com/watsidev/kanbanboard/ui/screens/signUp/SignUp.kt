@@ -1,5 +1,6 @@
 package com.watsidev.kanbanboard.ui.screens.signUp
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,11 +20,14 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,14 +55,14 @@ fun SignUpScreen(
     ) {
         Image(
             painterResource(R.drawable.trellunatext),
-            contentDescription = "Trelluna Logo",
+            contentDescription = stringResource(R.string.trelluna_logo),
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
             modifier = Modifier
                 .size(185.dp)
 
         )
         Text(
-            "Sign Up",
+            stringResource(R.string.sign_up),
             fontSize = 32.sp,
             fontWeight = FontWeight.Light,
             color = MaterialTheme.colorScheme.onBackground,
@@ -66,7 +70,7 @@ fun SignUpScreen(
         InputKanban(
             text = uiState.value.email,
             onTextChange = { viewModel.onEmailChange(it) },
-            label = "Email",
+            label = stringResource(R.string.email),
             leadingIcon = Icons.Outlined.Email,
             isPassword = false,
             modifier = Modifier
@@ -75,7 +79,7 @@ fun SignUpScreen(
         InputKanban(
             text = uiState.value.username,
             onTextChange = { viewModel.onUsernameChange(it) },
-            label = "Username",
+            label = stringResource(R.string.username),
             leadingIcon = Icons.Outlined.AccountBox, // You can change this icon if needed
             isPassword = false,
             modifier = Modifier
@@ -84,7 +88,7 @@ fun SignUpScreen(
         InputKanban(
             text = uiState.value.password,
             onTextChange = { viewModel.onPasswordChange(it) },
-            label = "Password",
+            label = stringResource(R.string.password),
             leadingIcon = Icons.Outlined.Lock,
             isPassword = true,
             modifier = Modifier
@@ -93,23 +97,44 @@ fun SignUpScreen(
         InputKanban(
             text = uiState.value.confirmPassword,
             onTextChange = { viewModel.onConfirmPasswordChange(it) },
-            label = "Confirm Password",
+            label = stringResource(R.string.confirm_password),
             leadingIcon = Icons.Outlined.Lock,
             isPassword = true,
             modifier = Modifier
                 .fillMaxWidth()
         )
         ButtonKanban(
-            text = "Sign Up",
+            text = stringResource(R.string.sign_up),
             icon = Icons.AutoMirrored.Filled.Login,
             onClick = {
-                viewModel.clearUiState()
-                onClick()
+                viewModel.registerUser()
+                Log.d("SignUpScreen", "Register completed with email: ${uiState.value.email} - ${uiState.value.registrationCompleted}")
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
         )
+        Log.d("SignUpScreen", "UI State: ${uiState.value.registrationCompleted}")
+        LaunchedEffect(uiState.value.registrationCompleted) {
+            if (uiState.value.registrationCompleted) {
+                onClick()
+                viewModel.clearUiState() // Clear the state after successful registration
+            }
+        }
+        uiState.value.errorMessage?.let { message ->
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+        uiState.value.successMessage?.let { message ->
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -117,12 +142,12 @@ fun SignUpScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Already have an account?",
+                stringResource(R.string.already_have_account),
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Text(
-                "Sign In",
+                stringResource(R.string.sign_in),
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.primary,
