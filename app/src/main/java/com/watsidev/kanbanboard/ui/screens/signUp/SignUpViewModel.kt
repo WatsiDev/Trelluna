@@ -37,23 +37,24 @@ class SignUpViewModel : ViewModel() {
 
     // Función para registrar usuario usando Retrofit
     fun registerUser(){
-//        val currentState = _uiState.value
-        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-
-        // Validar que no haya campos vacíos (puedes mejorar esta validación)
+        // Validar que no haya campos vacíos
         if (_uiState.value.email.isBlank() || _uiState.value.username.isBlank() ||
             _uiState.value.password.isBlank() || _uiState.value.confirmPassword.isBlank()) {
             _uiState.value = _uiState.value.copy(
                 isLoading = false,
+                isError = true,
                 errorMessage = "Por favor completa todos los campos"
             )
             return
         }
 
+        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+
         // Validar que password y confirmPassword coincidan
         if (_uiState.value.password != _uiState.value.confirmPassword) {
             _uiState.value = _uiState.value.copy(
                 isLoading = false,
+                isError = true,
                 errorMessage = "Las contraseñas no coinciden"
             )
             return
@@ -81,6 +82,7 @@ class SignUpViewModel : ViewModel() {
                     val errorMessage = response.errorBody()?.string() ?: "Error desconocido"
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
+                        isError = true,
                         errorMessage = "Error al registrar usuario: $errorMessage"
                     )
                     Log.e("SignUpViewModel", "Error al registrar usuario: $errorMessage")
@@ -91,6 +93,7 @@ class SignUpViewModel : ViewModel() {
             override fun onFailure(call: Call<UserCreatedResponse>, t: Throwable) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
+                    isError = true,
                     errorMessage = "Error: ${t.message}"
                 )
                 Log.e("SignUpViewModel", "Error al registrar usuario: ${t.message}")

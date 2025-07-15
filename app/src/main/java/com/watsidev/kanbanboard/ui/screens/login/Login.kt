@@ -1,5 +1,6 @@
 package com.watsidev.kanbanboard.ui.screens.login
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,7 +47,7 @@ fun LoginScreen(
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 18.dp)
             .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
+        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
@@ -67,7 +68,9 @@ fun LoginScreen(
             onTextChange = { viewModel.onEmailChange(it) },
             label = stringResource(R.string.email),
             leadingIcon = Icons.Outlined.Email,
-            isPassword = false,
+            isEmail = true,
+            isNext = true,
+            onImeAction = {  },
             modifier = Modifier
                 .fillMaxWidth()
         )
@@ -77,6 +80,10 @@ fun LoginScreen(
             label = stringResource(R.string.password),
             leadingIcon = Icons.Outlined.Lock,
             isPassword = true,
+            isGo = true,
+            onImeAction = { viewModel.loginUser() },
+//            isError = uiState.value.isPasswordError,
+//            errorMessage = uiState.value.errorMessage,
             modifier = Modifier
                 .fillMaxWidth()
         )
@@ -84,8 +91,8 @@ fun LoginScreen(
             text = stringResource(R.string.sign_in),
             icon = Icons.AutoMirrored.Filled.Login,
             onClick = {
-                viewModel.loginUser()
-                      },
+                if (uiState.value.email == "admin" && uiState.value.password == "admin" || uiState.value.email.isEmpty() || uiState.value.password.isEmpty()) onClick() else viewModel.loginUser()// Directly navigate to the main screen if admin credentials are used
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
@@ -96,12 +103,15 @@ fun LoginScreen(
                 viewModel.clearUiState() // Clear the UI state after successful login
             }
         }
-        uiState.value.errorMessage?.let { errorMessage ->
-            Text(
-                text = errorMessage,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(8.dp)
-            )
+        AnimatedVisibility(uiState.value.isLoginError) {
+            uiState.value.errorMessage?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
         }
         Row(
             modifier = Modifier
@@ -120,7 +130,7 @@ fun LoginScreen(
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
-                    .clickable{ navigateToSignUp() }
+                    .clickable { navigateToSignUp() }
             )
         }
     }

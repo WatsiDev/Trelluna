@@ -1,6 +1,7 @@
 package com.watsidev.kanbanboard.ui.common
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Visibility
@@ -19,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -27,12 +29,18 @@ import androidx.compose.ui.text.input.VisualTransformation
 fun InputKanban(
     text: String,
     onTextChange: (String) -> Unit,
-    label: String = "",
-    leadingIcon: ImageVector,
-    isPassword: Boolean,
-    modifier: Modifier = Modifier
+    label: String,
+    leadingIcon: ImageVector?,
+    isPassword: Boolean = false,
+    isEmail: Boolean = false,
+    isNext: Boolean = false,
+    isGo: Boolean = false,
+    isSearch: Boolean = false,
+    onImeAction: () -> Unit = {},
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
+    errorMessage: String? = null
 ) {
-
     var passwordVisibility by remember { mutableStateOf(false) }
     OutlinedTextField(
         value = text,
@@ -40,24 +48,36 @@ fun InputKanban(
         label = {
             Text(text = label)
         },
+        isError = isError,
+        supportingText = {
+            if (isError && errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        },
         singleLine = true,
         maxLines = 1,
         colors = TextFieldDefaults.colors(
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            focusedIndicatorColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedIndicatorColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
             focusedTextColor = MaterialTheme.colorScheme.onBackground,
             unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-            focusedLabelColor = MaterialTheme.colorScheme.onBackground,
-            unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+            focusedLabelColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground,
+            unfocusedLabelColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground,
         ),
         shape = RoundedCornerShape(100),
         leadingIcon = {
-            Icon(
-                leadingIcon,
-                contentDescription = "Icono de entrada",
-            )
+            leadingIcon?.let {
+                Icon(
+                    it,
+                    contentDescription = "Icono de entrada",
+                )
+            }
         },
         trailingIcon = {
             if (isPassword) {
@@ -75,8 +95,18 @@ fun InputKanban(
             VisualTransformation.None
         },
         keyboardOptions = KeyboardOptions.Default.copy(
-            keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Text
+            keyboardType = if (isPassword) KeyboardType.Password else if (isEmail) KeyboardType.Email else KeyboardType.Text,
+            imeAction = if (isNext) ImeAction.Next
+                        else if (isGo) ImeAction.Go
+                        else if (isSearch) ImeAction.Search
+                        else ImeAction.Done
         ),
+        keyboardActions = KeyboardActions(
+                    onNext = { if (isNext) onImeAction() },
+                    onGo = { if (isGo) onImeAction() },
+                    onSearch = { if (isSearch) onImeAction() },
+                    onDone = { onImeAction() }
+                ),
         modifier = modifier
     )
 }

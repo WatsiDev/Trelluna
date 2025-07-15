@@ -24,8 +24,20 @@ class LoginViewModel: ViewModel() {
     fun loginUser() {
         val state = _uiState.value
 
-        if (state.email.isBlank() || state.password.isBlank()) {
-            _uiState.value = state.copy(errorMessage = "Email y contraseña requeridos")
+        if (state.email.isBlank()) {
+            _uiState.value = state.copy(
+                isLoading = false,
+                isEmailError = true,
+                errorMessage = "Email requerido"
+            )
+            return
+        }
+        if (state.password.isBlank()) {
+            _uiState.value = state.copy(
+                isLoading = false,
+                isPasswordError = true,
+                errorMessage = "Contraseña requerida"
+            )
             return
         }
 
@@ -44,7 +56,8 @@ class LoginViewModel: ViewModel() {
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        errorMessage = "Credenciales inválidas"
+                        isLoginError = true,
+                        errorMessage = "Usuario o contraseña incorrectos",
                     )
                 }
             }

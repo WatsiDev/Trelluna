@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -72,7 +71,10 @@ fun SignUpScreen(
             onTextChange = { viewModel.onEmailChange(it) },
             label = stringResource(R.string.email),
             leadingIcon = Icons.Outlined.Email,
-            isPassword = false,
+            isEmail = true,
+            isNext = true,
+            isError = uiState.value.isLoading,
+            errorMessage = uiState.value.errorMessage,
             modifier = Modifier
                 .fillMaxWidth()
         )
@@ -80,8 +82,10 @@ fun SignUpScreen(
             text = uiState.value.username,
             onTextChange = { viewModel.onUsernameChange(it) },
             label = stringResource(R.string.username),
-            leadingIcon = Icons.Outlined.AccountBox, // You can change this icon if needed
-            isPassword = false,
+            leadingIcon = Icons.Outlined.AccountBox,
+            isNext = true,
+            isError = uiState.value.isLoading,
+            errorMessage = uiState.value.errorMessage,
             modifier = Modifier
                 .fillMaxWidth()
         )
@@ -91,6 +95,9 @@ fun SignUpScreen(
             label = stringResource(R.string.password),
             leadingIcon = Icons.Outlined.Lock,
             isPassword = true,
+            isNext = true,
+            isError = uiState.value.isLoading,
+            errorMessage = uiState.value.errorMessage,
             modifier = Modifier
                 .fillMaxWidth()
         )
@@ -100,6 +107,10 @@ fun SignUpScreen(
             label = stringResource(R.string.confirm_password),
             leadingIcon = Icons.Outlined.Lock,
             isPassword = true,
+            isGo = true,
+            onImeAction = { viewModel.registerUser() },
+            isError = uiState.value.isError,
+            errorMessage = uiState.value.errorMessage,
             modifier = Modifier
                 .fillMaxWidth()
         )
@@ -120,20 +131,6 @@ fun SignUpScreen(
                 onClick()
                 viewModel.clearUiState() // Clear the state after successful registration
             }
-        }
-        uiState.value.errorMessage?.let { message ->
-            Text(
-                text = message,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-        }
-        uiState.value.successMessage?.let { message ->
-            Text(
-                text = message,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
         }
         Row(
             modifier = Modifier
