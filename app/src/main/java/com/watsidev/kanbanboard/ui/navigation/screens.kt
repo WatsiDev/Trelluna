@@ -19,6 +19,14 @@ object SignUp
 object Home
 
 @Serializable
+object NewColumn
+
+@Serializable
+data class NewTask(
+    val id: Int
+)
+
+@Serializable
 object Profile
 
 @Serializable

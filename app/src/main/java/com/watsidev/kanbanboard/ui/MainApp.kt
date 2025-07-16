@@ -38,13 +38,18 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.watsidev.kanbanboard.R
 import com.watsidev.kanbanboard.ui.navigation.Home
 import com.watsidev.kanbanboard.ui.navigation.Login
+import com.watsidev.kanbanboard.ui.navigation.NewColumn
+import com.watsidev.kanbanboard.ui.navigation.NewTask
 import com.watsidev.kanbanboard.ui.navigation.Profile
 import com.watsidev.kanbanboard.ui.navigation.Projects
 import com.watsidev.kanbanboard.ui.navigation.SignUp
 import com.watsidev.kanbanboard.ui.navigation.items
+import com.watsidev.kanbanboard.ui.screens.home.CreateColumnScreen
+import com.watsidev.kanbanboard.ui.screens.home.CreateTaskScreen
 import com.watsidev.kanbanboard.ui.screens.home.HomeScreen
 import com.watsidev.kanbanboard.ui.screens.login.LoginScreen
 import com.watsidev.kanbanboard.ui.screens.profile.ProfileScreen
@@ -78,6 +83,28 @@ fun App() {
                 onClick = { route -> navController.navigate(route) }
             ) { pd ->
                 HomeScreen(
+                    onCreateNewColumn = { navController.navigate(NewColumn) },
+                    createTask = { id -> navController.navigate(NewTask(id)) },
+                    modifier = Modifier.padding(pd)
+                )
+            }
+        }
+        composable<NewColumn> {
+            ScreenWithTopBar(
+                onClick = { route -> navController.navigate(route) }
+            ) { pd ->
+                CreateColumnScreen(
+                    modifier = Modifier.padding(pd)
+                )
+            }
+        }
+        composable<NewTask> {
+            val newTask: NewTask = it.toRoute()
+            ScreenWithTopBar(
+                onClick = { route -> navController.navigate(route) }
+            ) { pd ->
+                CreateTaskScreen(
+                    id = newTask.id,
                     modifier = Modifier.padding(pd)
                 )
             }
