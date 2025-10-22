@@ -32,6 +32,9 @@ object Profile
 @Serializable
 object Projects
 
+@Serializable
+object NewProject
+
 data class NavigationItem(
     val title: String,
     val route: Any,

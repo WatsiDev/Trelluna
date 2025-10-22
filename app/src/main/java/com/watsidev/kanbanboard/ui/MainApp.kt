@@ -43,6 +43,7 @@ import com.watsidev.kanbanboard.R
 import com.watsidev.kanbanboard.ui.navigation.Home
 import com.watsidev.kanbanboard.ui.navigation.Login
 import com.watsidev.kanbanboard.ui.navigation.NewColumn
+import com.watsidev.kanbanboard.ui.navigation.NewProject
 import com.watsidev.kanbanboard.ui.navigation.NewTask
 import com.watsidev.kanbanboard.ui.navigation.Profile
 import com.watsidev.kanbanboard.ui.navigation.Projects
@@ -53,6 +54,7 @@ import com.watsidev.kanbanboard.ui.screens.home.CreateTaskScreen
 import com.watsidev.kanbanboard.ui.screens.home.HomeScreen
 import com.watsidev.kanbanboard.ui.screens.login.LoginScreen
 import com.watsidev.kanbanboard.ui.screens.profile.ProfileScreen
+import com.watsidev.kanbanboard.ui.screens.projects.CreateProjectScreen
 import com.watsidev.kanbanboard.ui.screens.projects.ProjectsScreen
 import com.watsidev.kanbanboard.ui.screens.signUp.SignUpScreen
 import kotlinx.coroutines.launch
@@ -120,7 +122,20 @@ fun App() {
             ScreenWithTopBar(
                 onClick = { route -> navController.navigate(route) }
             ) { pd ->
-                ProjectsScreen(modifier = Modifier.padding(pd))
+                ProjectsScreen(
+                    onNewProject = { navController.navigate(NewProject) },
+                    onProjectClick = {},
+                    modifier = Modifier.padding(pd)
+                )
+            }
+        }
+        composable<NewProject> {
+            ScreenWithTopBar(
+                onClick = { route -> navController.navigate(route) }
+            ) { pd ->
+                CreateProjectScreen(
+                    modifier = Modifier.padding(pd)
+                )
             }
         }
     }
