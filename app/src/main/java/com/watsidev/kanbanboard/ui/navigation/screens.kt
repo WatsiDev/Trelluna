@@ -16,7 +16,9 @@ object Login
 object SignUp
 
 @Serializable
-object Home
+data class Home(
+    val id: Int
+)
 
 @Serializable
 object NewColumn

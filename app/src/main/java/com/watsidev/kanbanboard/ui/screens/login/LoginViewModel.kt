@@ -2,74 +2,115 @@ package com.watsidev.kanbanboard.ui.screens.login
 
 import androidx.lifecycle.ViewModel
 import com.watsidev.kanbanboard.model.data.login.LoginRequest
-import com.watsidev.kanbanboard.model.data.login.LoginResponse
+import com.watsidev.kanbanboard.model.network.ApiService
+import com.watsidev.kanbanboard.model.network.AuthResponse
 import com.watsidev.kanbanboard.model.network.RetrofitInstance
+import com.watsidev.kanbanboard.model.network.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class LoginViewModel: ViewModel() {
+/**
+ * Estado de la UI para Login
+ * ¡Ahora incluye el token!
+ */
+data class LoginUiState(
+    val email: String = "",
+    val password: String = "",
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val isEmailError: Boolean = false,
+    val isPasswordError: Boolean = false,
+    val isLoginError: Boolean = false,
+    val loginSuccess: Boolean = false,
+    val user: User? = null,
+    val token: String? = null // <-- ¡AQUÍ ESTÁ EL TOKEN!
+)
+
+class LoginViewModel(
+    // Asumimos que RetrofitInstance.userApi existe, tal como en ProfileViewModel
+    private val userApi: ApiService = RetrofitInstance.api
+) : ViewModel() {
+
     private val _uiState = MutableStateFlow(LoginUiState())
-    val uiState: StateFlow<LoginUiState> = _uiState
+    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun onEmailChange(email: String) {
-        _uiState.value = _uiState.value.copy(email = email)
+        _uiState.update { it.copy(email = email) }
     }
+
     fun onPasswordChange(password: String) {
-        _uiState.value = _uiState.value.copy(password = password)
+        _uiState.update { it.copy(password = password) }
     }
 
     fun loginUser() {
         val state = _uiState.value
 
         if (state.email.isBlank()) {
-            _uiState.value = state.copy(
-                isLoading = false,
-                isEmailError = true,
-                errorMessage = "Email requerido"
-            )
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    isEmailError = true,
+                    errorMessage = "Email requerido"
+                )
+            }
             return
         }
         if (state.password.isBlank()) {
-            _uiState.value = state.copy(
-                isLoading = false,
-                isPasswordError = true,
-                errorMessage = "Contraseña requerida"
-            )
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    isPasswordError = true,
+                    errorMessage = "Contraseña requerida"
+                )
+            }
             return
         }
 
-        _uiState.value = state.copy(isLoading = true, errorMessage = null)
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
+        // Usamos el LoginRequest del paquete ...model.data.users
         val request = LoginRequest(email = state.email, password = state.password)
 
-        RetrofitInstance.api.loginUser(request).enqueue(object : Callback<LoginResponse> {
-            override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+        // Usamos la nueva userApi y esperamos AuthResponse
+        userApi.login(request).enqueue(object : Callback<AuthResponse> {
+            override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
                 if (response.isSuccessful && response.body() != null) {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        loginSuccess = true,
-                        user = response.body()?.user
-                    )
+                    val authData = response.body()!!
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            loginSuccess = true,
+                            user = authData.user,
+                            token = authData.token // <-- Guardamos el token en el estado
+                        )
+                    }
                 } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        isLoginError = true,
-                        errorMessage = "Usuario o contraseña incorrectos",
-                    )
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isLoginError = true,
+                            errorMessage = "Usuario o contraseña incorrectos",
+                        )
+                    }
                 }
             }
 
-            override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = "Error de red: ${t.message}"
-                )
+            override fun onFailure(call: Call<AuthResponse>, t: Throwable) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Error de red: ${t.message}"
+                    )
+                }
             }
         })
     }
+
     fun clearUiState() {
         _uiState.value = LoginUiState()
     }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -39,22 +40,35 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.watsidev.kanbanboard.model.data.columns.ColumnResponse
+import com.watsidev.kanbanboard.model.network.Column
 import com.watsidev.kanbanboard.ui.common.ButtonKanban
 import com.watsidev.kanbanboard.ui.common.TaskCard
 import com.watsidev.kanbanboard.ui.common.TaskTitle
+import com.watsidev.kanbanboard.ui.screens.projects.ProjectViewModel
 
 @Composable
 fun HomeScreen(
+    projectId: Int,
     onCreateNewColumn: () -> Unit,
     createTask:(Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // 1. Obtenemos la instancia del ViewModel principal
+    viewModel: ProjectViewModel = viewModel()
 ) {
+    // 2. Cargamos las columnas para este proyecto
+    LaunchedEffect(projectId) {
+        viewModel.loadProjectColumns(projectId)
+        // Opcional: También podríamos cargar los detalles del proyecto aquí
+        viewModel.loadProjectDetails(projectId) // <-- Descomentado para cargar el nombre
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
         HeaderTab(
+            viewModel = viewModel, // 3. Pasamos el ViewModel
             onCreateNewColumn = { onCreateNewColumn() },
             createTask = { createTask(it) }
         )
@@ -63,17 +77,24 @@ fun HomeScreen(
 
 @Composable
 fun HeaderTab(
+    viewModel: ProjectViewModel, // Recibe el ViewModel
     onCreateNewColumn: () -> Unit,
     createTask: (Int) -> Unit
 ) {
-    val selectedTab = remember { mutableStateOf(1) }
+    val selectedTab = remember { mutableStateOf(1) } // Inicia en "By Total Tasks"
+
+    // Obtenemos el estado para mostrar el nombre del proyecto
+    val state by viewModel.uiState.collectAsState()
+    // Usamos el 'selectedProject' que se carga en el LaunchedEffect de HomeScreen
+    val projectName = state.selectedProject?.name ?: "Cargando..."
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
     ) {
         Text(
-            "Project Name",
+            projectName, // Mostramos el nombre del proyecto
             fontWeight = FontWeight.Bold,
             fontSize = 24.sp,
             modifier = Modifier
@@ -137,7 +158,10 @@ fun HeaderTab(
         }
         when (selectedTab.value) {
             0 -> ByStatus()
-            1 -> ByTotalTasks(createTask = { createTask(it) })
+            1 -> ByTotalTasks(
+                viewModel = viewModel, // Pasamos el ViewModel
+                createTask = { createTask(it) }
+            )
             2 -> TasksDue()
         }
     }
@@ -165,8 +189,9 @@ fun ByStatus(
 fun ByTotalTasks(
     modifier: Modifier = Modifier,
     createTask: (Int) -> Unit,
-    viewModel: ColumnListViewModel = viewModel()
+    viewModel: ProjectViewModel // 4. Recibe el ProjectViewModel
 ) {
+    // 5. Obtenemos el estado de la UI desde el ProjectViewModel
     val state by viewModel.uiState.collectAsState()
 
     LazyColumn(
@@ -177,7 +202,9 @@ fun ByTotalTasks(
     ) {
         if (state.isLoading) {
             item {
-                CircularProgressIndicator()
+                CircularProgressIndicator(modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentWidth(Alignment.CenterHorizontally))
             }
         }
 
@@ -187,13 +214,12 @@ fun ByTotalTasks(
             }
         }
 
-        items(state.columns) { column ->
-            this@LazyColumn.item(key = "column-${column.id}") {
-                ColumnWithTasksItem(
-                    column = column,
-                    onAddTaskClick = createTask
-                )
-            }
+        // 6. Iteramos sobre 'columnList' de nuestro estado
+        items(state.selectedProjectColumns, key = { column -> "column-${column.id}" }) { column ->
+            ColumnWithTasksItem(
+                column = column,
+                onAddTaskClick = createTask
+            )
         }
     }
 }
@@ -202,13 +228,15 @@ fun ByTotalTasks(
 
 @Composable
 fun ColumnWithTasksItem(
-    column: ColumnResponse,
+    column: Column, // 7. Usamos nuestro modelo de datos 'Column'
     onAddTaskClick: (Int) -> Unit
 ) {
+    // 8. Inyectamos el TaskListViewModel REAL
     val viewModel: TaskListViewModel = viewModel(key = "tasks_for_column_${column.id}")
     val state by viewModel.uiState.collectAsState()
 
-    // Cargar tareas solo la primera vez o si cambia la columna
+
+    // 9. Cargar tareas solo la primera vez o si cambia la columna
     LaunchedEffect(column.id) {
         viewModel.fetchTasks(column.id)
     }
@@ -230,10 +258,12 @@ fun ColumnWithTasksItem(
         } else if (state.errorMessage != null) {
             Text("Error: ${state.errorMessage}", color = MaterialTheme.colorScheme.error)
         } else {
+            // 10. Iteramos sobre la lista real de TaskResponse
             state.tasks.forEach { task ->
+                // Asumo que TaskResponse tiene campos .title, .description, .priority
                 TaskCard(
                     title = task.title,
-                    description = task.description,
+                    description = task.description ?: "",
                     comments = "", // completa si tienes info
                     checked = "",  // completa si tienes info
                     chipText = task.priority,

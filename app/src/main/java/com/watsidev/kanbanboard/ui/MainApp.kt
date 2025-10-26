@@ -28,7 +28,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -62,32 +66,53 @@ import kotlinx.coroutines.launch
 @Composable
 fun App() {
     val navController = rememberNavController()
+
+    // --- ¡AÑADIDO! Guardamos el token de sesión aquí ---
+    var authToken by rememberSaveable { mutableStateOf<String?>(null) }
+
     NavHost(
         navController = navController,
         startDestination = Login
     ) {
         composable<Login> {
             LoginScreen(
-                onClick = { navController.navigate(Home) },
+                // ¡CORREGIDO! Usamos onLoginSuccess
+                onLoginSuccess = { token ->
+                    authToken = token // Guardamos el token
+                    navController.navigate(Projects) {
+                        // Limpiamos el stack para que no pueda volver a Login
+                        popUpTo(Login) { inclusive = true }
+                    }
+                },
                 navigateToSignUp = { navController.navigate(SignUp) },
                 modifier = Modifier
             )
         }
-        composable<SignUp>{
+        composable<SignUp> {
             SignUpScreen(
-                onClick = { navController.navigate(Home) },
+                // ¡CORREGIDO! Usamos onRegisterSuccess
+                onRegisterSuccess = { token ->
+                    authToken = token // Guardamos el token
+                    navController.navigate(Projects) { // Navegamos a Proyectos (igual que Login)
+                        // Limpiamos el stack
+                        popUpTo(SignUp) { inclusive = true }
+                    }
+                },
                 navigateToLogin = { navController.popBackStack<Login>(inclusive = false) },
                 modifier = Modifier
             )
         }
         composable<Home> {
+            val home: Home = it.toRoute()
             ScreenWithTopBar(
                 onClick = { route -> navController.navigate(route) }
             ) { pd ->
                 HomeScreen(
+                    projectId = home.id,
                     onCreateNewColumn = { navController.navigate(NewColumn) },
                     createTask = { id -> navController.navigate(NewTask(id)) },
                     modifier = Modifier.padding(pd)
+                    // Nota: HomeScreen (y su VM) también necesitarán el authToken
                 )
             }
         }
@@ -97,6 +122,7 @@ fun App() {
             ) { pd ->
                 CreateColumnScreen(
                     modifier = Modifier.padding(pd)
+                    // Nota: Este VM también necesitará el authToken
                 )
             }
         }
@@ -108,6 +134,7 @@ fun App() {
                 CreateTaskScreen(
                     id = newTask.id,
                     modifier = Modifier.padding(pd)
+                    // Nota: Este VM también necesitará el authToken
                 )
             }
         }
@@ -115,7 +142,10 @@ fun App() {
             ScreenWithTopBar(
                 onClick = { route -> navController.navigate(route) }
             ) { pd ->
-                ProfileScreen()
+                ProfileScreen(
+                    // ¡CORREGIDO! Pasamos el token guardado
+                    authToken = authToken ?: ""
+                )
             }
         }
         composable<Projects> {
@@ -124,8 +154,9 @@ fun App() {
             ) { pd ->
                 ProjectsScreen(
                     onNewProject = { navController.navigate(NewProject) },
-                    onProjectClick = {},
+                    onProjectClick = { id -> navController.navigate(Home(id)) },
                     modifier = Modifier.padding(pd)
+                    // Nota: Este VM también necesitará el authToken
                 )
             }
         }
@@ -135,6 +166,7 @@ fun App() {
             ) { pd ->
                 CreateProjectScreen(
                     modifier = Modifier.padding(pd)
+                    // Nota: Este VM también necesitará el authToken
                 )
             }
         }
@@ -157,7 +189,7 @@ fun ScreenWithTopBar(
     ) {
         Scaffold(
             topBar = {
-                KanbanTopBar( onMenuClick = { scope.launch { drawerState.open() } } )
+                KanbanTopBar(onMenuClick = { scope.launch { drawerState.open() } })
             },
             modifier = Modifier
                 .fillMaxSize()
@@ -167,6 +199,7 @@ fun ScreenWithTopBar(
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

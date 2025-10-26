@@ -1,6 +1,7 @@
 package com.watsidev.kanbanboard.ui.screens.signUp
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,11 +18,13 @@ import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -38,12 +41,22 @@ import com.watsidev.kanbanboard.ui.common.InputKanban
 
 @Composable
 fun SignUpScreen(
-    onClick: () -> Unit,
+    // ¡ACTUALIZADO! Ahora devuelve el token
+    onRegisterSuccess: (token: String) -> Unit,
     viewModel: SignUpViewModel = viewModel(),
     navigateToLogin: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val uiState = viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+
+    // ¡ACTUALIZADO! Se activa con el token
+    LaunchedEffect(uiState.token) {
+        if (uiState.token != null) {
+            onRegisterSuccess(uiState.token!!) // Pasa el token
+            viewModel.clearUiState() // Limpia el estado
+        }
+    }
+
     Column(
         modifier = modifier
             .background(MaterialTheme.colorScheme.background)
@@ -66,72 +79,72 @@ fun SignUpScreen(
             fontWeight = FontWeight.Light,
             color = MaterialTheme.colorScheme.onBackground,
         )
+
+        // --- ¡CORREGIDO! Conectado a 'name' ---
         InputKanban(
-            text = uiState.value.email,
+            text = uiState.name,
+            onTextChange = { viewModel.onNameChange(it) },
+            label = "Nombre", // Usar 'name'
+            leadingIcon = Icons.Outlined.Person, // Icono consistente
+            isNext = true,
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+
+        InputKanban(
+            text = uiState.email,
             onTextChange = { viewModel.onEmailChange(it) },
             label = stringResource(R.string.email),
             leadingIcon = Icons.Outlined.Email,
             isEmail = true,
             isNext = true,
-            isError = uiState.value.isLoading,
-            errorMessage = uiState.value.errorMessage,
             modifier = Modifier
                 .fillMaxWidth()
         )
+
         InputKanban(
-            text = uiState.value.username,
-            onTextChange = { viewModel.onUsernameChange(it) },
-            label = stringResource(R.string.username),
-            leadingIcon = Icons.Outlined.AccountBox,
-            isNext = true,
-            isError = uiState.value.isLoading,
-            errorMessage = uiState.value.errorMessage,
-            modifier = Modifier
-                .fillMaxWidth()
-        )
-        InputKanban(
-            text = uiState.value.password,
+            text = uiState.password,
             onTextChange = { viewModel.onPasswordChange(it) },
             label = stringResource(R.string.password),
             leadingIcon = Icons.Outlined.Lock,
             isPassword = true,
             isNext = true,
-            isError = uiState.value.isLoading,
-            errorMessage = uiState.value.errorMessage,
             modifier = Modifier
                 .fillMaxWidth()
         )
         InputKanban(
-            text = uiState.value.confirmPassword,
+            text = uiState.confirmPassword,
             onTextChange = { viewModel.onConfirmPasswordChange(it) },
             label = stringResource(R.string.confirm_password),
             leadingIcon = Icons.Outlined.Lock,
             isPassword = true,
             isGo = true,
             onImeAction = { viewModel.registerUser() },
-            isError = uiState.value.isError,
-            errorMessage = uiState.value.errorMessage,
             modifier = Modifier
                 .fillMaxWidth()
         )
         ButtonKanban(
-            text = stringResource(R.string.sign_up),
+            text = if (uiState.isLoading) "Creando cuenta..." else stringResource(R.string.sign_up),
             icon = Icons.AutoMirrored.Filled.Login,
             onClick = {
                 viewModel.registerUser()
-                Log.d("SignUpScreen", "Register completed with email: ${uiState.value.email} - ${uiState.value.registrationCompleted}")
             },
+            //enabled = !uiState.isLoading, // Deshabilitar mientras carga
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
         )
-        Log.d("SignUpScreen", "UI State: ${uiState.value.registrationCompleted}")
-        LaunchedEffect(uiState.value.registrationCompleted) {
-            if (uiState.value.registrationCompleted) {
-                onClick()
-                viewModel.clearUiState() // Clear the state after successful registration
-            }
+
+        // --- ¡AÑADIDO! Bloque de error ---
+        AnimatedVisibility(uiState.isError && uiState.errorMessage != null) {
+            Text(
+                text = uiState.errorMessage ?: "Error desconocido",
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -149,7 +162,7 @@ fun SignUpScreen(
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
-                    .clickable{ navigateToLogin() }
+                    .clickable { navigateToLogin() }
             )
         }
     }

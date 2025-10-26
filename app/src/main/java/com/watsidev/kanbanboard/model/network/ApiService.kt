@@ -9,20 +9,22 @@ import com.watsidev.kanbanboard.model.data.register.UserCreatedResponse
 import com.watsidev.kanbanboard.model.data.tasks.NewTaskRequest
 import com.watsidev.kanbanboard.model.data.tasks.TaskResponse
 import retrofit2.Call
-import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-const val BASE_URL = "http://192.168.100.4:3000" // Cambia esto por la IP de tu servidor
+//const val BASE_URL = "http://192.168.100.4:3000" // Cambia esto por la IP de tu servidor
 //const val BASE_URL = "https://kanban-api-production-3916.up.railway.app/"
+const val BASE_URL = "http://10.0.2.2:3000"
+
 interface ApiService {
     @POST("/api/users")
     fun createUser(@Body newUser: NewUserRequest): Call<UserCreatedResponse>
@@ -90,6 +92,86 @@ interface ApiService {
 
     @GET("api/projects/{id}/columns")
     fun getProjectColumns(@Path("id") projectId: Int): Call<List<Column>> // Sin suspend
+
+    /**
+     * POST: /api/users/login
+     */
+    @POST("api/users/login")
+    fun login(@Body request: LoginRequest): Call<AuthResponse>
+
+    /**
+     * POST: /api/users/register
+     */
+    @POST("api/users/register")
+    fun register(@Body request: RegisterRequest): Call<AuthResponse>
+
+    /**
+     * GET: /api/users/auth/me
+     * (Requiere token de autorización)
+     */
+    @GET("api/users/auth/me")
+    fun getMyProfile(@Header("Authorization") token: String): Call<User>
+
+    /**
+     * GET: /api/users
+     * (Requiere token de autorización)
+     * Nota: Tu API no especificaba 'auth' aquí, pero listar usuarios
+     * debería ser protegido. Asumo que requiere token.
+     */
+    @GET("api/users")
+    fun listUsers(@Header("Authorization") token: String): Call<List<User>>
+
+    /**
+     * POST: /api/users
+     * (Crear usuario como Admin, requiere token)
+     */
+    @POST("api/users")
+    fun createUser(
+        @Header("Authorization") token: String,
+        @Body request: CreateUserRequest
+    ): Call<CreateUserResponse>
+
+    /**
+     * GET: /api/users/:id
+     * (Requiere token de autorización)
+     */
+    @GET("api/users/{id}")
+    fun getUserProfile(
+        @Header("Authorization") token: String,
+        @Path("id") userId: Int
+    ): Call<User>
+
+    /**
+     * PUT: /api/users/:id
+     * (Requiere token de autorización)
+     */
+    @PUT("api/users/{id}")
+    fun updateUser(
+        @Header("Authorization") token: String,
+        @Path("id") userId: Int,
+        @Body request: UpdateUserRequest
+    ): Call<User>
+
+    /**
+     * PATCH: /api/users/:id/password
+     * (Requiere token de autorización)
+     */
+    @PATCH("api/users/{id}/password")
+    fun updatePassword(
+        @Header("Authorization") token: String,
+        @Path("id") userId: Int,
+        @Body request: UpdatePasswordRequest
+    ): Call<MessageResponse>
+
+    /**
+     * DELETE: /api/users/:id
+     * (Requiere token de autorización)
+     */
+    @DELETE("api/users/{id}")
+    fun deleteUser(
+        @Header("Authorization") token: String,
+        @Path("id") userId: Int
+    ): Call<MessageResponse>
 
 }
 

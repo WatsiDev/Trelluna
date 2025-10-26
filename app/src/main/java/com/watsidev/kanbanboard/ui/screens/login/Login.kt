@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -36,12 +37,22 @@ import com.watsidev.kanbanboard.ui.common.InputKanban
 
 @Composable
 fun LoginScreen(
-    onClick: () -> Unit,
+    // ¡Actualizado! Ahora devuelve el token en el éxito.
+    onLoginSuccess: (token: String) -> Unit,
     viewModel: LoginViewModel = viewModel(),
     navigateToSignUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val uiState = viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+
+    // Este LaunchedEffect maneja la navegación DESPUÉS de que la API responde.
+    LaunchedEffect(uiState.token) {
+        if (uiState.token != null) {
+            onLoginSuccess(uiState.token!!) // <-- Pasa el token
+            viewModel.clearUiState() // Limpia el estado después de navegar
+        }
+    }
+
     Column(
         modifier = modifier
             .background(MaterialTheme.colorScheme.background)
@@ -64,54 +75,55 @@ fun LoginScreen(
             color = MaterialTheme.colorScheme.onBackground,
         )
         InputKanban(
-            text = uiState.value.email,
+            text = uiState.email,
             onTextChange = { viewModel.onEmailChange(it) },
             label = stringResource(R.string.email),
             leadingIcon = Icons.Outlined.Email,
             isEmail = true,
             isNext = true,
-            onImeAction = {  },
+            onImeAction = { },
+            // Conecta los errores de validación del ViewModel
+            isError = uiState.isEmailError,
+            errorMessage = if (uiState.isEmailError) uiState.errorMessage else null,
             modifier = Modifier
                 .fillMaxWidth()
         )
         InputKanban(
-            text = uiState.value.password,
+            text = uiState.password,
             onTextChange = { viewModel.onPasswordChange(it) },
             label = stringResource(R.string.password),
             leadingIcon = Icons.Outlined.Lock,
             isPassword = true,
             isGo = true,
             onImeAction = { viewModel.loginUser() },
-//            isError = uiState.value.isPasswordError,
-//            errorMessage = uiState.value.errorMessage,
+            // Conecta los errores de validación del ViewModel
+            isError = uiState.isPasswordError,
+            errorMessage = if (uiState.isPasswordError) uiState.errorMessage else null,
             modifier = Modifier
                 .fillMaxWidth()
         )
         ButtonKanban(
-            text = stringResource(R.string.sign_in),
+            text = if (uiState.isLoading) "Ingresando..." else stringResource(R.string.sign_in),
             icon = Icons.AutoMirrored.Filled.Login,
             onClick = {
-                if (uiState.value.email == "admin" && uiState.value.password == "admin" || uiState.value.email.isEmpty() || uiState.value.password.isEmpty()) onClick() else viewModel.loginUser()// Directly navigate to the main screen if admin credentials are used
+                // ¡CORREGIDO! El botón SIEMPRE llama al ViewModel.
+                // El ViewModel maneja si los campos están vacíos o no.
+                viewModel.loginUser()
             },
+            //enabled = !uiState.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
         )
-        LaunchedEffect(uiState.value.loginSuccess) {
-            if (uiState.value.loginSuccess) {
-                onClick()
-                viewModel.clearUiState() // Clear the UI state after successful login
-            }
-        }
-        AnimatedVisibility(uiState.value.isLoginError) {
-            uiState.value.errorMessage?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
+
+        // Muestra el error de la API (ej. "Usuario o contraseña incorrectos")
+        AnimatedVisibility(uiState.isLoginError && uiState.errorMessage != null) {
+            Text(
+                text = uiState.errorMessage ?: "Error desconocido",
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
         Row(
             modifier = Modifier

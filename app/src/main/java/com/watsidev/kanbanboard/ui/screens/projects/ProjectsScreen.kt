@@ -1,5 +1,6 @@
 package com.watsidev.kanbanboard.ui.screens.projects
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +32,7 @@ fun ProjectsScreen( // <-- Renombrado para coincidir con tu archivo
     // Asumo que usas Hilt o la factoría por defecto para obtener el ViewModel
     viewModel: ProjectViewModel = viewModel(),
     onNewProject: () -> Unit,
-    onProjectClick: (Project) -> Unit
+    onProjectClick: (Int) -> Unit
 ) {
     // Observa el UiState del ViewModel
     val uiState by viewModel.uiState.collectAsState()
@@ -84,6 +85,7 @@ fun ProjectsScreen( // <-- Renombrado para coincidir con tu archivo
                         chipText = project.id.toString(),
                         chipTextColor = MaterialTheme.colorScheme.primary, // De tu archivo
                         // Añadí un onClick para la navegación
+                        modifier = Modifier.clickable{ onProjectClick(project.id) },
                         //onClick = { onProjectClick(project) }
                     )
                 }
