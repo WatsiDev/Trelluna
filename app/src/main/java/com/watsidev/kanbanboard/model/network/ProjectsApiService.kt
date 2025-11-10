@@ -38,7 +38,7 @@ data class Column(
     @SerializedName("id") val id: Int,
     @SerializedName("project_id") val projectId: Int,
     @SerializedName("name") val name: String,
-    @SerializedName("position") val position: Int,
+    //@SerializedName("position") val position: Int,
     @SerializedName("created_at") val createdAt: String
 )
 

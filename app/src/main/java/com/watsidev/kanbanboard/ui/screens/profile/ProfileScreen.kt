@@ -38,20 +38,20 @@ import com.watsidev.kanbanboard.ui.common.TaskTitle
 fun ProfileScreen(
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel = viewModel(),
-    // Asumimos que recibes esto de la navegación.
-    // Pasa 'null' si quieres cargar el perfil propio (/auth/me)
-    // Pasa el ID si eres admin y ves otro perfil
-    userIdToLoad: Int? = null,
-    // Asumimos que tienes el token disponible (ej. desde un ViewModel de sesión)
-    authToken: String
+    onLogout: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
 
-    // Cargar el perfil cuando la pantalla aparece por primera vez
-    LaunchedEffect(authToken, userIdToLoad) {
-        if (authToken.isNotBlank()) {
-            viewModel.loadProfile(authToken, userIdToLoad)
+    // Cargar el perfil desde la sesión (sin llamada de red)
+    LaunchedEffect(Unit) {
+        viewModel.loadProfileFromSession()
+    }
+
+    // Observa si la cuenta fue eliminada para ejecutar el logout
+    LaunchedEffect(state.deleteSuccess) {
+        if (state.deleteSuccess) {
+            onLogout()
         }
     }
 
@@ -119,7 +119,7 @@ fun ProfileScreen(
             ButtonKanban(
                 text = if (state.isLoading) "Guardando..." else "Guardar Cambios",
                 icon = Icons.Outlined.Save,
-                onClick = { viewModel.updateProfile(authToken, profile.id) },
+                onClick = { viewModel.updateProfile() },
                 //enabled = !state.isLoading,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -152,7 +152,7 @@ fun ProfileScreen(
             ButtonKanban(
                 text = if (state.isLoading) "Actualizando..." else "Actualizar Contraseña",
                 icon = Icons.Outlined.Lock,
-                onClick = { viewModel.changePassword(authToken, profile.id) },
+                onClick = { viewModel.changePassword() },
                 //enabled = !state.isLoading && state.formPassword.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -176,7 +176,9 @@ fun ProfileScreen(
             ButtonKanban(
                 text = if (state.isLoading) "Eliminando..." else "Eliminar Cuenta",
                 icon = Icons.Outlined.DeleteForever,
-                onClick = { viewModel.deleteAccount(authToken, profile.id) },
+                onClick = {
+                    viewModel.deleteAccount()
+                },
                 //enabled = !state.isLoading,
                 // Cambia los colores para que sea un botón de peligro
                 //containerColor = MaterialTheme.colorScheme.errorContainer,

@@ -5,6 +5,7 @@ import com.watsidev.kanbanboard.model.data.tasks.NewTaskRequest
 import com.watsidev.kanbanboard.model.data.tasks.TaskResponse
 import com.watsidev.kanbanboard.model.network.ApiService
 import com.watsidev.kanbanboard.model.network.RetrofitInstance
+import com.watsidev.kanbanboard.model.session.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,6 +18,7 @@ class CreateTaskViewModel(
     private val apiService: ApiService = RetrofitInstance.api
 ) : ViewModel() {
 
+    // Usamos el nuevo UiState
     private val _uiState = MutableStateFlow(CreateTaskUiState())
     val uiState: StateFlow<CreateTaskUiState> = _uiState.asStateFlow()
 
@@ -32,29 +34,35 @@ class CreateTaskViewModel(
         _uiState.update { it.copy(priority = newPriority) }
     }
 
-    fun onColumnIdChange(newColumnId: String) {
-        _uiState.update { it.copy(columnId = newColumnId) }
-    }
+    // --- onColumnIdChange y onCreatedByChange eliminados ---
 
-    fun onCreatedByChange(newCreatedBy: String) {
-        _uiState.update { it.copy(createdBy = newCreatedBy) }
-    }
-
-    fun createTask(id :Int) {
+    fun createTask(id: Int) { // 'id' es el column_id que viene de la UI
         val state = _uiState.value
-        if (state.title.isBlank() || state.description.isBlank() || state.priority.isBlank() || state.createdBy.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Completa todos los campos") }
+
+        // 1. Obtenemos el ID del usuario desde nuestra sesión
+        val userId = SessionManager.getUserId()
+
+        // 2. Validamos los campos del formulario
+        if (state.title.isBlank() || state.description.isBlank()) {
+            _uiState.update { it.copy(errorMessage = "Título y descripción son requeridos") }
+            return
+        }
+
+        // 3. Validamos que tengamos un usuario
+        if (userId.isBlank()) {
+            _uiState.update { it.copy(errorMessage = "Error: No se pudo identificar al usuario. Inicia sesión de nuevo.") }
             return
         }
 
         _uiState.update { it.copy(isLoading = true, errorMessage = null, isSuccess = false) }
 
+        // 4. Creamos el request con el 'id' (column_id) y el 'userId' (created_by)
         val request = NewTaskRequest(
             title = state.title,
             description = state.description,
-            priority = state.priority,
-            column_id = id.toString(),
-            created_by = state.createdBy
+            priority = state.priority, // "Alto", "Medio" o "Bajo"
+            column_id = id.toString(),  // El ID de la columna que recibimos
+            created_by = userId         // El ID del usuario de la sesión
         )
 
         apiService.createTask(request).enqueue(object : Callback<TaskResponse> {

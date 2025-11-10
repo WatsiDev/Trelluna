@@ -20,33 +20,33 @@ class ColumnListViewModel(
     val uiState: StateFlow<ColumnListUiState> = _uiState.asStateFlow()
 
     init {
-        fetchColumns()
+       // fetchColumns()
     }
 
-    fun fetchColumns() {
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
-        apiService.getColumns().enqueue(object : Callback<List<ColumnResponse>> {
-            override fun onResponse(
-                call: Call<List<ColumnResponse>>,
-                response: Response<List<ColumnResponse>>
-            ) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        columns = response.body() ?: emptyList()
-                    )
-                }
-            }
-
-            override fun onFailure(call: Call<List<ColumnResponse>>, t: Throwable) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Error: ${t.message}"
-                    )
-                }
-            }
-        })
-    }
+//    fun fetchColumns() {
+//        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+//
+//        apiService.getColumns(1).enqueue(object : Callback<List<ColumnResponse>> {
+//            override fun onResponse(
+//                call: Call<List<ColumnResponse>>,
+//                response: Response<List<ColumnResponse>>
+//            ) {
+//                _uiState.update {
+//                    it.copy(
+//                        isLoading = false,
+//                        columns = response.body() ?: emptyList()
+//                    )
+//                }
+//            }
+//
+//            override fun onFailure(call: Call<List<ColumnResponse>>, t: Throwable) {
+//                _uiState.update {
+//                    it.copy(
+//                        isLoading = false,
+//                        errorMessage = "Error: ${t.message}"
+//                    )
+//                }
+//            }
+//        })
+//    }
 }

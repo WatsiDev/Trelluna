@@ -1,16 +1,21 @@
 package com.watsidev.kanbanboard.model.network
 
 import com.watsidev.kanbanboard.model.data.columns.ColumnResponse
+import com.watsidev.kanbanboard.model.data.columns.CreateColumnRequest
 import com.watsidev.kanbanboard.model.data.columns.NewColumnRequest
+import com.watsidev.kanbanboard.model.data.columns.UpdateColumnRequest
 import com.watsidev.kanbanboard.model.data.login.LoginRequest
 import com.watsidev.kanbanboard.model.data.login.LoginResponse
 import com.watsidev.kanbanboard.model.data.register.NewUserRequest
 import com.watsidev.kanbanboard.model.data.register.UserCreatedResponse
 import com.watsidev.kanbanboard.model.data.tasks.NewTaskRequest
 import com.watsidev.kanbanboard.model.data.tasks.TaskResponse
+import com.watsidev.kanbanboard.model.data.columns.Column as NewColumn
+import com.watsidev.kanbanboard.model.data.columns.MessageResponse as NewMessageResponse
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -22,21 +27,25 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 //const val BASE_URL = "http://192.168.100.4:3000" // Cambia esto por la IP de tu servidor
-//const val BASE_URL = "https://kanban-api-production-3916.up.railway.app/"
-const val BASE_URL = "http://10.0.2.2:3000"
+const val BASE_URL = "https://trelluna-api.onrender.com"
+//const val BASE_URL = "http://10.0.2.2:3000"
 
 interface ApiService {
+
+    @GET("/")
+    suspend fun checkApiStatus(): String
+
     @POST("/api/users")
     fun createUser(@Body newUser: NewUserRequest): Call<UserCreatedResponse>
 
     @POST("api/users/login")
     fun loginUser(@Body request: LoginRequest): Call<LoginResponse>
 
-    @POST("api/columns")
-    fun createColumn(@Body newColumn: NewColumnRequest): Call<ColumnResponse>
+//    @POST("api/columns")
+//    fun createColumn(@Body newColumn: NewColumnRequest): Call<ColumnResponse>
 
-    @GET("/api/columns")
-    fun getColumns(): Call<List<ColumnResponse>>
+//    @GET("/api/columns")
+//    fun getColumns(): Call<List<ColumnResponse>>
 
     @POST("/api/tasks")
     fun createTask(@Body newTask: NewTaskRequest): Call<TaskResponse>
@@ -173,12 +182,54 @@ interface ApiService {
         @Path("id") userId: Int
     ): Call<MessageResponse>
 
+    /*  NEW COLUMNS API */
+
+    /**
+     * POST /api/columns
+     * Crea una nueva columna.
+     */
+    @POST("api/columns")
+    fun createColumn(@Body request: CreateColumnRequest): Call<NewColumn>
+
+    /**
+     * GET /api/columns
+     * Obtiene una lista de todas las columnas.
+     * Opcionalmente filtra por project_id si no es nulo.
+     */
+    @GET("api/columns")
+    fun getColumns(@Query("project_id") projectId: Int?): Call<List<NewColumn>>
+
+    /**
+     * GET /api/columns/:id
+     * Obtiene una columna específica por su ID.
+     */
+    @GET("api/columns/{id}")
+    fun getColumnById(@Path("id") columnId: Int): Call<NewColumn>
+
+    /**
+     * PUT /api/columns/:id
+     * Actualiza el nombre de una columna.
+     */
+    @PUT("api/columns/{id}")
+    fun updateColumn(
+        @Path("id") columnId: Int,
+        @Body request: UpdateColumnRequest
+    ): Call<NewColumn>
+
+    /**
+     * DELETE /api/columns/:id
+     * Elimina una columna.
+     */
+    @DELETE("api/columns/{id}")
+    fun deleteColumn(@Path("id") columnId: Int): Call<NewMessageResponse>
+
 }
 
 object RetrofitInstance {
     val api: ApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL) // usa 10.0.2.2 en emulador Android
+            .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ApiService::class.java)

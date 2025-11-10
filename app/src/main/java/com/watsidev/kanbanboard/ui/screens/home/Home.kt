@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,22 +45,31 @@ import com.watsidev.kanbanboard.model.network.Column
 import com.watsidev.kanbanboard.ui.common.ButtonKanban
 import com.watsidev.kanbanboard.ui.common.TaskCard
 import com.watsidev.kanbanboard.ui.common.TaskTitle
+import com.watsidev.kanbanboard.ui.screens.projects.ProjectEvent
 import com.watsidev.kanbanboard.ui.screens.projects.ProjectViewModel
+import kotlin.random.Random
 
 @Composable
 fun HomeScreen(
     projectId: Int,
-    onCreateNewColumn: () -> Unit,
+    onCreateNewColumn: (Int) -> Unit,
+    onProjectDeleted: () -> Unit,
     createTask:(Int) -> Unit,
     modifier: Modifier = Modifier,
     // 1. Obtenemos la instancia del ViewModel principal
-    viewModel: ProjectViewModel = viewModel()
+    viewModel: ProjectViewModel = viewModel(),
 ) {
+    val state by viewModel.uiState.collectAsState()
+    LaunchedEffect(state.lastEvent) {
+        if (state.lastEvent == ProjectEvent.ProjectDeleted) {
+            onProjectDeleted()        // Llama al callback para navegar
+            viewModel.eventConsumed() // Limpia el evento
+        }
+    }
     // 2. Cargamos las columnas para este proyecto
     LaunchedEffect(projectId) {
         viewModel.loadProjectColumns(projectId)
-        // Opcional: También podríamos cargar los detalles del proyecto aquí
-        viewModel.loadProjectDetails(projectId) // <-- Descomentado para cargar el nombre
+        viewModel.loadProjectDetails(projectId)
     }
 
     Column(
@@ -68,8 +78,9 @@ fun HomeScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         HeaderTab(
+            projectId = projectId,
             viewModel = viewModel, // 3. Pasamos el ViewModel
-            onCreateNewColumn = { onCreateNewColumn() },
+            onCreateNewColumn = { onCreateNewColumn(it) },
             createTask = { createTask(it) }
         )
     }
@@ -77,15 +88,14 @@ fun HomeScreen(
 
 @Composable
 fun HeaderTab(
+    projectId: Int,
     viewModel: ProjectViewModel, // Recibe el ViewModel
-    onCreateNewColumn: () -> Unit,
+    onCreateNewColumn: (Int) -> Unit,
     createTask: (Int) -> Unit
 ) {
-    val selectedTab = remember { mutableStateOf(1) } // Inicia en "By Total Tasks"
+    val selectedTab = remember { mutableStateOf(0) } // Inicia en "By Total Tasks"
 
-    // Obtenemos el estado para mostrar el nombre del proyecto
     val state by viewModel.uiState.collectAsState()
-    // Usamos el 'selectedProject' que se carga en el LaunchedEffect de HomeScreen
     val projectName = state.selectedProject?.name ?: "Cargando..."
 
     Column(
@@ -122,19 +132,19 @@ fun HeaderTab(
                 modifier = Modifier
             )
             IconButton(
-                onClick = { /* Handle settings action */ },
+                onClick = { viewModel.deleteProject(projectId) },
                 colors = IconButtonDefaults.iconButtonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer
                 ),
                 modifier = Modifier
             ) {
                 Icon(
-                    Icons.Outlined.FileUpload,
-                    contentDescription = "Export Icon",
+                    Icons.Outlined.Delete,
+                    contentDescription = "Delete project",
                 )
             }
             IconButton(
-                onClick = { onCreateNewColumn() },
+                onClick = { onCreateNewColumn(projectId) },
                 colors = IconButtonDefaults.iconButtonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer
                 ),
@@ -157,33 +167,33 @@ fun HeaderTab(
             }
         }
         when (selectedTab.value) {
-            0 -> ByStatus()
-            1 -> ByTotalTasks(
+//            0 -> ByStatus()
+            0 -> ByTotalTasks(
                 viewModel = viewModel, // Pasamos el ViewModel
                 createTask = { createTask(it) }
             )
-            2 -> TasksDue()
+//            2 -> TasksDue()
         }
     }
 }
 
-@Composable
-fun ByStatus(
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-    ) {
-        item {
-            Text(
-                text = "By Status",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-    }
-}
+//@Composable
+//fun ByStatus(
+//    modifier: Modifier = Modifier
+//) {
+//    LazyColumn(
+//        modifier = modifier
+//            .fillMaxSize()
+//    ) {
+//        item {
+//            Text(
+//                text = "By Status",
+//                style = MaterialTheme.typography.headlineMedium,
+//                modifier = Modifier.padding(16.dp)
+//            )
+//        }
+//    }
+//}
 
 @Composable
 fun ByTotalTasks(
@@ -241,7 +251,7 @@ fun ColumnWithTasksItem(
         viewModel.fetchTasks(column.id)
     }
 
-    val color = getColorByPosition(column.position)
+    val color = getColorByPosition(Random.nextInt(1, 9))
 
     Column(modifier = Modifier.fillMaxWidth()) {
         TaskTitle(
@@ -277,20 +287,20 @@ fun ColumnWithTasksItem(
 
 
 
-@Composable
-fun TasksDue(
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-    ) {
-        item {
-            Text(
-                text = "Tasks Due",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-    }
-}
+//@Composable
+//fun TasksDue(
+//    modifier: Modifier = Modifier
+//) {
+//    LazyColumn(
+//        modifier = modifier
+//            .fillMaxSize()
+//    ) {
+//        item {
+//            Text(
+//                text = "Tasks Due",
+//                style = MaterialTheme.typography.headlineMedium,
+//                modifier = Modifier.padding(16.dp)
+//            )
+//        }
+//    }
+//}

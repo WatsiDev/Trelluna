@@ -21,7 +21,9 @@ data class Home(
 )
 
 @Serializable
-object NewColumn
+data class NewColumn(
+    val id: Int
+)
 
 @Serializable
 data class NewTask(
@@ -44,11 +46,11 @@ data class NavigationItem(
 )
 
 val items = listOf(
-    NavigationItem(
-        title = "Home",
-        route = Home,
-        icons = Icons.Outlined.Home
-    ),
+//    NavigationItem(
+//        title = "Home",
+//        route = Home,
+//        icons = Icons.Outlined.Home
+//    ),
     NavigationItem(
         title = "Projects",
         route = Projects,

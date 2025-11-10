@@ -10,4 +10,5 @@
     <string name="confirm_password">Confirm Password</string>
     <string name="already_have_account">Already have an account?</string>
     <string name="menu_icon">Menu Icon</string>
+    <string name="connect_server">Conectandose al servidor...</string>
 </resources>

@@ -9,6 +9,7 @@ import com.watsidev.kanbanboard.model.network.AuthResponse
 import com.watsidev.kanbanboard.model.network.RegisterRequest
 import com.watsidev.kanbanboard.model.network.RetrofitInstance
 import com.watsidev.kanbanboard.model.network.User
+import com.watsidev.kanbanboard.model.session.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,9 +30,7 @@ data class SignUpUiState(
     val isLoading: Boolean = false,
     val isError: Boolean = false,
     val errorMessage: String? = null,
-    val registrationCompleted: Boolean = false,
-    val user: User? = null, // <-- Dato del usuario
-    val token: String? = null // <-- Token JWT
+    val signUpSuccess: Boolean = false,
 )
 
 class SignUpViewModel(
@@ -107,16 +106,34 @@ class SignUpViewModel(
         userApi.register(request).enqueue(object : Callback<AuthResponse> {
             override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
                 if (response.isSuccessful && response.body() != null) {
-                    val authData = response.body()!!
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            registrationCompleted = true,
-                            user = authData.user, // Guardamos el usuario
-                            token = authData.token // Guardamos el token
-                        )
-                    }
-                    Log.d("SignUpViewModel", "Usuario creado exitosamente: ${authData.token}")
+                    // 1. Registro exitoso, obtenemos el token
+                    val token = response.body()!!.token
+
+                    // 2. ¡AHORA inicializamos la sesión (llamada a /me)!
+                    SessionManager.initializeSession(
+                        token = token,
+                        onSessionReady = {
+                            // 3. ¡Éxito en /me! Sesión lista.
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    signUpSuccess = true // <-- Marcamos el éxito
+                                )
+                            }
+                            Log.d("SignUpViewModel", "Sesión inicializada exitosamente.")
+                        },
+                        onError = { errorMsg ->
+                            // 3b. Falló la llamada a /me
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    isError = true,
+                                    errorMessage = "Registro exitoso, pero falló al obtener perfil: $errorMsg"
+                                )
+                            }
+                            Log.e("SignUpViewModel", "Error al inicializar sesión: $errorMsg")
+                        }
+                    )
                 } else {
                     // Manejo de error (ej. 409 - Email ya existe)
                     val errorMsg = if (response.code() == 409) {

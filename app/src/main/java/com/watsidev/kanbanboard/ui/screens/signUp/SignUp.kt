@@ -41,18 +41,17 @@ import com.watsidev.kanbanboard.ui.common.InputKanban
 
 @Composable
 fun SignUpScreen(
-    // ¡ACTUALIZADO! Ahora devuelve el token
-    onRegisterSuccess: (token: String) -> Unit,
+    onRegisterSuccess: () -> Unit,
     viewModel: SignUpViewModel = viewModel(),
     navigateToLogin: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // ¡ACTUALIZADO! Se activa con el token
-    LaunchedEffect(uiState.token) {
-        if (uiState.token != null) {
-            onRegisterSuccess(uiState.token!!) // Pasa el token
+    // ¡ACTUALIZADO! Se activa con 'signUpSuccess'
+    LaunchedEffect(uiState.signUpSuccess) {
+        if (uiState.signUpSuccess) {
+            onRegisterSuccess() // ¡Ya no pasa el token!
             viewModel.clearUiState() // Limpia el estado
         }
     }

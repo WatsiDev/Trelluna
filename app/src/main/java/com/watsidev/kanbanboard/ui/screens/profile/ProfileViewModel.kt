@@ -7,6 +7,7 @@ import com.watsidev.kanbanboard.model.network.RetrofitInstance
 import com.watsidev.kanbanboard.model.network.UpdatePasswordRequest
 import com.watsidev.kanbanboard.model.network.UpdateUserRequest
 import com.watsidev.kanbanboard.model.network.User
+import com.watsidev.kanbanboard.model.session.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -74,49 +75,38 @@ class ProfileViewModel(
      * @param userId Si es null, carga el perfil propio (/auth/me).
      * Si se provee, carga el perfil de ese usuario.
      */
-    fun loadProfile(token: String, userId: Int? = null) {
+    fun loadProfileFromSession() {
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-        val authToken = "Bearer $token"
+        val user = SessionManager.getUser()
 
-        val call = if (userId == null) {
-            userApi.getMyProfile(authToken)
+        if (user != null) {
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    profile = user,
+                    // Rellenamos los campos del formulario con los datos cargados
+                    formName = user.name,
+                    formEmail = user.email,
+                    formRole = user.role
+                )
+            }
         } else {
-            userApi.getUserProfile(authToken, userId)
+            _uiState.update { it.copy(isLoading = false, errorMessage = "Error: No se encontró sesión activa.") }
         }
-
-        call.enqueue(object : Callback<User> {
-            override fun onResponse(call: Call<User>, response: Response<User>) {
-                if (response.isSuccessful && response.body() != null) {
-                    val user = response.body()!!
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            profile = user,
-                            // Rellenamos los campos del formulario con los datos cargados
-                            formName = user.name,
-                            formEmail = user.email,
-                            formRole = user.role
-                        )
-                    }
-                } else {
-                    _uiState.update {
-                        it.copy(isLoading = false, errorMessage = "Error al cargar perfil: ${response.code()}")
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<User>, t: Throwable) {
-                _uiState.update {
-                    it.copy(isLoading = false, errorMessage = "Fallo de red: ${t.message}")
-                }
-            }
-        })
     }
 
     /**
      * Actualiza el perfil del usuario (nombre, email, rol).
      */
-    fun updateProfile(token: String, userId: Int) {
+    fun updateProfile() {
+        val token = SessionManager.getAuthToken()
+        val userId = SessionManager.getUserId()
+
+        if (token == null || userId == null) {
+            _uiState.update { it.copy(errorMessage = "Error: No se encontró sesión activa.") }
+            return
+        }
+
         _uiState.update { it.copy(isLoading = true, errorMessage = null, updateSuccess = false) }
         val state = _uiState.value
 
@@ -126,9 +116,10 @@ class ProfileViewModel(
             role = state.formRole
         )
 
-        userApi.updateUser("Bearer $token", userId, request).enqueue(object : Callback<User> {
+        userApi.updateUser(token, userId.toInt(), request).enqueue(object : Callback<User> {
             override fun onResponse(call: Call<User>, response: Response<User>) {
                 if (response.isSuccessful && response.body() != null) {
+                    SessionManager.updateUser(response.body()!!) // Actualiza la sesión
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -154,7 +145,15 @@ class ProfileViewModel(
     /**
      * Cambia la contraseña del usuario.
      */
-    fun changePassword(token: String, userId: Int) {
+    fun changePassword() {
+        val token = SessionManager.getAuthToken()
+        val userId = SessionManager.getUserId()
+
+        if (token == null || userId == null) {
+            _uiState.update { it.copy(errorMessage = "Error de sesión inválida") }
+            return
+        }
+
         val state = _uiState.value
         if (state.formPassword.isBlank()) {
             _uiState.update { it.copy(errorMessage = "La contraseña no puede estar vacía") }
@@ -165,7 +164,7 @@ class ProfileViewModel(
 
         val request = UpdatePasswordRequest(password = state.formPassword)
 
-        userApi.updatePassword("Bearer $token", userId, request).enqueue(object : Callback<MessageResponse> {
+        userApi.updatePassword(token, userId.toInt(), request).enqueue(object : Callback<MessageResponse> {
             override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
                 if (response.isSuccessful) {
                     _uiState.update {
@@ -193,12 +192,20 @@ class ProfileViewModel(
     /**
      * Elimina la cuenta de un usuario.
      */
-    fun deleteAccount(token: String, userId: Int) {
+    fun deleteAccount() {
+        val token = SessionManager.getAuthToken()
+        val userId = SessionManager.getUser()?.id
+
+        if (token == null || userId == null) {
+            _uiState.update { it.copy(errorMessage = "Error de sesión inválida") }
+            return
+        }
         _uiState.update { it.copy(isLoading = true, errorMessage = null, deleteSuccess = false) }
 
-        userApi.deleteUser("Bearer $token", userId).enqueue(object : Callback<MessageResponse> {
+        userApi.deleteUser(token, userId.toInt()).enqueue(object : Callback<MessageResponse> {
             override fun onResponse(call: Call<MessageResponse>, response: Response<MessageResponse>) {
                 if (response.isSuccessful) {
+                    SessionManager.clearSession()
                     _uiState.update {
                         it.copy(isLoading = false, deleteSuccess = true, profile = null)
                     }

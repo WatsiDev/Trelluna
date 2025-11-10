@@ -6,6 +6,7 @@ import com.watsidev.kanbanboard.model.network.ApiService
 import com.watsidev.kanbanboard.model.network.AuthResponse
 import com.watsidev.kanbanboard.model.network.RetrofitInstance
 import com.watsidev.kanbanboard.model.network.User
+import com.watsidev.kanbanboard.model.session.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -80,15 +81,32 @@ class LoginViewModel(
         userApi.login(request).enqueue(object : Callback<AuthResponse> {
             override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
                 if (response.isSuccessful && response.body() != null) {
-                    val authData = response.body()!!
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            loginSuccess = true,
-                            user = authData.user,
-                            token = authData.token // <-- Guardamos el token en el estado
-                        )
-                    }
+                    val token = response.body()!!.token
+
+                    // 2. ¡Éxito en Login! AHORA inicializamos la sesión (llamada a /me)
+                    SessionManager.initializeSession(
+                        token = token,
+                        onSessionReady = {
+                            // 3. ¡Éxito en /me! Sesión lista.
+                            // Ahora sí, marcamos loginSuccess = true
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    loginSuccess = true
+                                )
+                            }
+                        },
+                        onError = { errorMsg ->
+                            // 3b. Falló la llamada a /me
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    isLoginError = true,
+                                    errorMessage = "Login exitoso, pero falló al obtener perfil: $errorMsg"
+                                )
+                            }
+                        }
+                    )
                 } else {
                     _uiState.update {
                         it.copy(
