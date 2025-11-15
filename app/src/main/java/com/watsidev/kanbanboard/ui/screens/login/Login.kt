@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.CloudOff
@@ -31,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -199,7 +201,8 @@ fun LoginScreen(
             }
 
             // Cuando está listo, no mostramos ningún modal
-            is ServerState.Ready -> { /* No se muestra modal */ }
+            is ServerState.Ready -> {
+            }
         }
         // --- FIN DEL CAMBIO ---
     }
@@ -215,14 +218,17 @@ fun WakingUpServer() {
     ) {
         Column(
             modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.surfaceContainer)
-                .padding(horizontal = 18.dp)
-                .size(300.dp),
+                //.padding(horizontal = 18.dp)
+                .size(300.dp)
+
+            ,
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ConnectingToServerAnimation()
-            Text(stringResource(R.string.connect_server))
+            Text(stringResource(R.string.connect_server), color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
